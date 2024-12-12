@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>res/Vectri.png</file>
+        <file>res/Vectri_outline.png</file>
+    </qresource>
+</RCC>

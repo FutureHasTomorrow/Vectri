@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "DataBase.h"
 
 #include <QWidget>
 #include <QLayout>
@@ -13,38 +14,12 @@
 #include <QString>
 #include <QMenu>
 #include <QIcon>
-#include <QDir>
-#include <QFile>
-#include <QFileIconProvider>
-#include <QDirIterator>
-
-struct FileItem
-{
-    QString fileName;
-    QString filePath;
-    QIcon icon;
-};
 
 
 class MainWindow : public QWidget
 {
     Q_OBJECT
-public:
-    struct Theme
-    {
-        QSize leSearchSize = QSize(500, 50);
-        QSize pbCloseSize = QSize(100, 50);
-        QSize lIconSize = QSize(40,40);
 
-        double borderRadius = 20;
-        QColor mainWindowColor = QColor(30,30,30,128);
-        QColor highlightTextColor = QColor(200, 255, 255);
-        QColor dropdownListColor = QColor(30,30,30,192);
-        QFont searchFont = QFont("Consolas", 14, QFont::Bold);
-        QFont closeButtonFont = QFont("Consolas", 14, QFont::Normal);
-        QFont dropdownListFont = QFont("Consolas", 16, QFont::Normal);
-
-    };
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
@@ -56,9 +31,18 @@ private:
     QPushButton* pbClose;
     QListWidget* lwDropdown;
     QSystemTrayIcon* stiTray;
+private:
+    void lIconInit();
+    void fSepInit();
+    void leSearchInit();
+    void pbCloseInit();
+    void hblMainInit();
 
+    void lwDropdownInit();
+    void stiTrayInit();
 private:
     Theme theme;
+    DataBase dataBase;
 
 
     bool isDragging = false;
@@ -72,9 +56,9 @@ private:
 
 private:
     void updateDropdownListPosition();
-
     void updateListItem();
 
+    void openFile(int index);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -87,26 +71,5 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
     void closeEvent(QCloseEvent *event) override;
 
-public:
-    static QList<FileItem> searchFiles(const QString& directoryPath) {
-        QList<FileItem> fileList;
-        QFileIconProvider iconProvider;
-
-        QDirIterator it(directoryPath, QDir::Files, QDirIterator::Subdirectories);
-        while (it.hasNext()) {
-            QString filePath = it.next();
-            QFileInfo fileInfo(filePath);
-
-            // 获取文件信息
-            FileItem info;
-            info.fileName = fileInfo.fileName();
-            info.filePath = fileInfo.absoluteFilePath();
-            info.icon = iconProvider.icon(fileInfo); // 获取文件图标
-
-            // 添加到文件列表
-            fileList.append(info);
-        }
-        return fileList;
-    }
 };
 #endif // MAINWINDOW_H

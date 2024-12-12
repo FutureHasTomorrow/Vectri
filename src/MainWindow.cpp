@@ -5,14 +5,12 @@
 #include <QPainterPath>
 #include <QDesktopServices>
 #include <QApplication>
+#include <QFileDialog>
 
 
-MainWindow::MainWindow(QWidget *parent)
-    : QWidget(parent)
+
+void MainWindow::lIconInit()
 {
-    this->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-    this->setAttribute(Qt::WA_TranslucentBackground);
-
     lIcon = new QLabel;
     {
         QPixmap* pixmap = new QPixmap(":/res/Vectri_outline.png");
@@ -21,12 +19,17 @@ MainWindow::MainWindow(QWidget *parent)
         lIcon->setPixmap(*pixmap);
     }
     lIcon->setFixedSize(theme.lIconSize);
+}
 
+void MainWindow::fSepInit()
+{
     fSep = new QFrame;
     fSep->setFrameShape(QFrame::VLine);
     fSep->setFrameShadow(QFrame::Sunken);
+}
 
-
+void MainWindow::leSearchInit()
+{
     leSearch = new QLineEdit;
     leSearch->setFixedSize(theme.leSearchSize);
     leSearch->setFont(theme.searchFont);
@@ -44,8 +47,16 @@ MainWindow::MainWindow(QWidget *parent)
         leSearch->setMask(region);
     }
 
+    connect(leSearch, &QLineEdit::textChanged, [&](const QString &text) {
+        fileItemList = dataBase.match(text);
+        updateListItem();
+    });
 
+    connect(leSearch, &QLineEdit::returnPressed, [&]() {if(fileItemList.size())openFile(0);});
+}
 
+void MainWindow::pbCloseInit()
+{
     pbClose = new QPushButton;
     pbClose->setText("Close");
     pbClose->setFlat(true);
@@ -61,7 +72,15 @@ MainWindow::MainWindow(QWidget *parent)
         QRegion region(path.toFillPolygon().toPolygon());
         pbClose->setMask(region);
     }
+    connect(pbClose, &QPushButton::clicked, this, &QWidget::close);
+}
 
+void MainWindow::hblMainInit()
+{
+    lIconInit();
+    fSepInit();
+    leSearchInit();
+    pbCloseInit();
 
     hblMain = new QHBoxLayout;
     this->setLayout(hblMain);
@@ -72,10 +91,10 @@ MainWindow::MainWindow(QWidget *parent)
     hblMain->addSpacing(10);
     hblMain->addWidget(leSearch);
     hblMain->addWidget(pbClose);
+}
 
-
-
-
+void MainWindow::lwDropdownInit()
+{
     lwDropdown = new QListWidget;
 
     lwDropdown->setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
@@ -86,13 +105,28 @@ MainWindow::MainWindow(QWidget *parent)
         palette.setColor(QPalette::Base, theme.dropdownListColor);
         lwDropdown->setPalette(palette);
     }
-    updateListItem();
-    lwDropdown->show();
-
     lwDropdown->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     lwDropdown->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    updateListItem();
 
+    connect(lwDropdown, &QListWidget::itemClicked, [&] (QListWidgetItem* item){
+        openFile(lwDropdown->row(item));
+    });
+    lwDropdown->show();
+}
 
+void MainWindow::openFile(int index)
+{
+    QDesktopServices::openUrl(QUrl::fromLocalFile(fileItemList[index].filePath));
+    fileItemList.clear();
+    updateListItem();
+    leSearch->clear();
+    this->hide();
+    lwDropdown->hide();
+}
+
+void MainWindow::stiTrayInit()
+{
     stiTray = new QSystemTrayIcon(this);
     stiTray->setIcon(QIcon(":/res/Vectri.png"));
     stiTray->setToolTip("Vectri");
@@ -116,8 +150,6 @@ MainWindow::MainWindow(QWidget *parent)
     stiTray->setContextMenu(mTray);
 
 
-
-
     connect(stiTray, &QSystemTrayIcon::activated, [&](QSystemTrayIcon::ActivationReason reason){
         if(reason==QSystemTrayIcon::Trigger)
         {
@@ -133,27 +165,31 @@ MainWindow::MainWindow(QWidget *parent)
             }
         }
         // if(reason==QSystemTrayIcon::DoubleClick)
-    });
+        });
+}
 
-    connect(pbClose, SIGNAL(clicked()), this, SLOT(close()));
-    connect(lwDropdown, &QListWidget::itemClicked, [&] (QListWidgetItem* item){
-        QDesktopServices::openUrl(QUrl::fromLocalFile(fileItemList[lwDropdown->row(item)].filePath));
-        fileItemList.clear();
-        updateListItem();
-
-        // if (!QDesktopServices::openUrl(QUrl::fromLocalFile(filePath))) {
-        //     qDebug() << "Failed to open file.";
-        // }
-        // qDebug()<<item->text();
-        // leSearch->setText(item->text());
-        // dropdownList->hide();
-    });
+MainWindow::MainWindow(QWidget *parent)
+    : QWidget(parent)
+{
+    this->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+    this->setAttribute(Qt::WA_TranslucentBackground);
 
 
+    hblMainInit();
+    lwDropdownInit();
+    stiTrayInit();
 
 
-    fileItemList = searchFiles("E:\\Downloads\\实验4_链接炸弹");
-    updateListItem();
+    QString dir = QFileDialog::getExistingDirectory(
+        this,
+        "Select Directory",
+        "");
+
+    if (!dir.isEmpty()) {
+        dataBase.setDir(dir);
+    }
+
+
 }
 
 MainWindow::~MainWindow()
@@ -175,14 +211,45 @@ void MainWindow::updateListItem()
     for (auto &file : fileItemList)
     {
         QListWidgetItem* item = new QListWidgetItem;
-        item->setIcon(file.icon);
-        item->setText(file.filePath);
+
         lwDropdown->addItem(item);
+
+        item->setSizeHint(QSize(0, theme.listItemHeight));
+
+        QWidget* widget = new QWidget;
+        QHBoxLayout *mainLayout = new QHBoxLayout(widget);
+        mainLayout->setContentsMargins(5, 5, 5, 5);
+        QLabel *iconLabel = new QLabel;
+        iconLabel->setPixmap(file.icon.pixmap(theme.listItemIconSize));
+        mainLayout->addWidget(iconLabel);
+        QVBoxLayout *textLayout = new QVBoxLayout;
+        QLabel *nameLabel = new QLabel(file.fileName);
+        nameLabel->setFont(theme.fileNameFont);
+
+        textLayout->addWidget(nameLabel);
+        QLabel *pathLabel = new QLabel(file.filePath);
+        pathLabel->setFont(theme.filePathFont);
+        {
+            QPalette palette = pathLabel->palette();
+            palette.setColor(QPalette::Text, Qt::gray);
+            pathLabel->setPalette(palette);
+        }
+
+        textLayout->addWidget(pathLabel);
+
+        mainLayout->addLayout(textLayout);
+        mainLayout->addStretch();
+
+
+
+        lwDropdown->setItemWidget(item, widget);
     }
 
     int rowCount = lwDropdown->count();
     int rowHeight = lwDropdown->sizeHintForRow(0);
     lwDropdown->setFixedHeight(rowHeight * rowCount + 2 * lwDropdown->frameWidth());
+
+
 }
 
 
@@ -239,11 +306,5 @@ void MainWindow::closeEvent(QCloseEvent *event)
     lwDropdown->hide();
     this->hide();
     event->ignore();
-    // QApplication::setQuitOnLastWindowClosed( true );
-    // lwDropdown->close();
-    // QWidget::closeEvent(event);
 }
-
-
-
 

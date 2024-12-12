@@ -25,6 +25,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 
 
 	res.qrc
+	include/DataBase.h
+	src/DataBase.cpp
+	include/structs.h
 
 
 

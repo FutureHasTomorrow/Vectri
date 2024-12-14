@@ -2,6 +2,8 @@
 #define DATABASE_H
 
 #include "structs.h"
+#include "WordToVec.h"
+#include "HNSW.h"
 
 #include <QObject>
 #include <QList>
@@ -15,14 +17,18 @@ public:
     ~DataBase();
 
     void setDir(const QString& dirPath);
-    // void load();
-    // void save();
 
     QList<FileItem> match(const QString& text);
 private:
     QList<FileItem> searchFiles(const QString& dirPath);
 
+
+    WordToVec wtv;
+    Hnsw::hnsw<double> hnsw;
+
     QList<FileItem> fileItemList;
+    QList<std::vector<double>> vecList;
+    std::unordered_map<unsigned long long, int> keyMap;
 };
 
 #endif // DATABASE_H

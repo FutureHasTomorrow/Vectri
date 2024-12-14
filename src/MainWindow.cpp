@@ -6,6 +6,7 @@
 #include <QDesktopServices>
 #include <QApplication>
 #include <QFileDialog>
+#include <QTimer>
 
 
 
@@ -30,10 +31,14 @@ void MainWindow::fSepInit()
 
 void MainWindow::leSearchInit()
 {
+
     leSearch = new QLineEdit;
     leSearch->setFixedSize(theme.leSearchSize);
     leSearch->setFont(theme.searchFont);
     leSearch->setFrame(false);
+    // leSearch->setAttribute(Qt::WA_InputMethodEnabled);
+    leSearch->setFocusPolicy(Qt::StrongFocus);  // 确保 QLineEdit 可以获得输入焦点
+    leSearch->setInputMethodHints(Qt::ImhNone); // 不限制输入法
 
     {
         QPalette palette = leSearch->palette();
@@ -175,19 +180,22 @@ MainWindow::MainWindow(QWidget *parent)
     this->setAttribute(Qt::WA_TranslucentBackground);
 
 
+
     hblMainInit();
     lwDropdownInit();
     stiTrayInit();
 
 
-    QString dir = QFileDialog::getExistingDirectory(
-        this,
-        "Select Directory",
-        "");
+    QTimer::singleShot(0, this, [&]() {
+        QString dir = QFileDialog::getExistingDirectory(
+            this,
+            "Select Directory",
+            "");
 
-    if (!dir.isEmpty()) {
-        dataBase.setDir(dir);
-    }
+        if (!dir.isEmpty()) {
+            dataBase.setDir(dir);
+        }
+    });
 
 
 }

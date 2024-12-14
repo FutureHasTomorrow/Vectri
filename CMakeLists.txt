@@ -29,6 +29,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 	src/DataBase.cpp
 	include/structs.h
 
+	include/WordToVec.h
+	include/HNSW.h
+
 
 
 

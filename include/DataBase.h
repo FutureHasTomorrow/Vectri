@@ -29,6 +29,8 @@ private:
     QList<FileItem> fileItemList;
     QList<std::vector<double>> vecList;
     std::unordered_map<unsigned long long, int> keyMap;
+
+
 };
 
 #endif // DATABASE_H

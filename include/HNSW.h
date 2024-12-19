@@ -14,7 +14,7 @@ using std ::vector;
 using std ::string;
 
 const string HERE_FILE_NAME = "data.txt";
-const int efConstruction = 100;
+const int efConstruction = 300;
 const double alpha = 0.3;
 
 template <typename ValueType = int>
@@ -23,7 +23,7 @@ private:
     using T = ValueType;
     using ull = unsigned long long;
     using IT = typename std ::vector<T> ::iterator;
-    const int M = 50;
+    const int M = 100;
     const int Mmax = M;
     const int Mmax0 = M * 2;
     const double Ml = 1 / log(M);

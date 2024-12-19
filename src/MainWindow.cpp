@@ -20,6 +20,7 @@ void MainWindow::lIconInit()
         lIcon->setPixmap(*pixmap);
     }
     lIcon->setFixedSize(theme.lIconSize);
+    this->setWindowIcon(QIcon(":/res/Vectri.png"));
 }
 
 void MainWindow::fSepInit()

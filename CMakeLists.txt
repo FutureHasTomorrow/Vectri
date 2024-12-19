@@ -19,6 +19,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(Vectri
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+	logo.rc
 	src/main.cpp src/MainWindow.cpp
 	include/MainWindow.h
 	src/main.cpp src/MainWindow.cpp
@@ -31,6 +32,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 
 	include/WordToVec.h
 	include/HNSW.h
+
+
 
 
 
